@@ -1,0 +1,134 @@
+(() => {
+  "use strict";
+
+  const $ = (id) => document.getElementById(id);
+
+  function getArticleType(articleEl) {
+    if (articleEl.classList.contains("opinion")) return "opinion";
+    if (articleEl.classList.contains("recipe")) return "recipe";
+    return "update"; 
+  }
+
+  function nextArticleId() {
+    const nums = Array.from(document.querySelectorAll("#articleList article[id^='a']"))
+      .map((a) => parseInt(a.id.slice(1), 10))
+      .filter((n) => !Number.isNaN(n));
+    const next = (nums.length ? Math.max(...nums) : 0) + 1;
+    return "a" + next;
+  }
+
+  function showFilter() {
+    const filter = $("filterContent");
+    const addForm = $("newContent");
+
+    // Hide the add form
+    addForm.style.display = "none";
+
+    const isHidden = getComputedStyle(filter).display === "none";
+    filter.style.display = isHidden ? "block" : "none";
+  }
+
+  function showAddNew() {
+    const filter = $("filterContent");
+    const addForm = $("newContent");
+
+    // Hide the filter menu 
+    filter.style.display = "none";
+
+    const isHidden = getComputedStyle(addForm).display === "none";
+    addForm.style.display = isHidden ? "flex" : "none";
+  }
+
+  function filterArticles() {
+    const allowOpinion = $("opinionCheckbox").checked;
+    const allowRecipe = $("recipeCheckbox").checked;
+    const allowUpdate = $("updateCheckbox").checked;
+
+    const allowMap = {
+      opinion: allowOpinion,
+      recipe: allowRecipe,
+      update: allowUpdate,
+    };
+
+    document.querySelectorAll("#articleList article").forEach((article) => {
+      const type = getArticleType(article);
+      article.style.display = allowMap[type] ? "" : "none";
+    });
+  }
+
+  function addNewArticle() {
+    const title = $("inputHeader").value.trim();
+    const text = $("inputArticle").value.trim();
+
+    let typeClass = "";
+    let markerText = "";
+
+    if ($("opinionRadio").checked) {
+      typeClass = "opinion";
+      markerText = "Opinion";
+    } else if ($("recipeRadio").checked) {
+      typeClass = "recipe";
+      markerText = "Recipe";
+    } else if ($("lifeRadio").checked) {
+      typeClass = "update";
+      markerText = "Update";
+    }
+
+    if (!title || !text || !typeClass) {
+      alert("Please enter a Title, choose a Type, and enter Text.");
+      return;
+    }
+
+    const article = document.createElement("article");
+    article.classList.add(typeClass);
+    article.id = nextArticleId();
+
+    const marker = document.createElement("span");
+    marker.className = "marker";
+    marker.textContent = markerText;
+
+    const h2 = document.createElement("h2");
+    h2.textContent = title;
+
+    const pText = document.createElement("p");
+    pText.textContent = text;
+
+    const pLink = document.createElement("p");
+    const a = document.createElement("a");
+    a.href = "moreDetails.html";
+    a.textContent = "Read more...";
+    pLink.appendChild(a);
+
+    article.appendChild(marker);
+    article.appendChild(h2);
+    article.appendChild(pText);
+    article.appendChild(pLink);
+
+    // Add new articles to the top
+    const list = $("articleList");
+    list.prepend(article);
+
+    // Clear inputs + reset radios
+    $("inputHeader").value = "";
+    $("inputArticle").value = "";
+    $("opinionRadio").checked = false;
+    $("recipeRadio").checked = false;
+    $("lifeRadio").checked = false;
+
+    // Apply current filters
+    filterArticles();
+  }
+
+ //Attributes in filters
+  window.showFilter = showFilter;
+  window.showAddNew = showAddNew;
+  window.filterArticles = filterArticles;
+  window.addNewArticle = addNewArticle;
+
+  //Menus appear only after clicking buttons
+  document.addEventListener("DOMContentLoaded", () => {
+    $("filterContent").style.display = "none";
+    $("newContent").style.display = "none";
+    filterArticles(); 
+  });
+})();
